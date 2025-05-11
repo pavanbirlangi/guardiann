@@ -19,7 +19,9 @@ interface AuthContextType {
   confirmSignUp: (email: string, code: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (email: string, code: string, newPassword: string) => Promise<void>;
+  setSessionFromToken: (tokens: {id_token: string;access_token: string;refresh_token?: string;}) => Promise<void>; 
 }
+
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -169,19 +171,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       setIsLoading(true);
-      const response = await cognitoAuth.signOut();
-      
-      if (response.success) {
-        setIsAuthenticated(false);
-        setUser(null);
-        toast({
-          title: 'Success',
-          description: 'Successfully signed out!',
-        });
-        navigate('/');
-      } else {
-        throw new Error(response.error || 'Sign out failed');
-      }
+  
+      // Construct hosted UI logout URL
+      const domain = import.meta.env.VITE_COGNITO_DOMAIN;
+      const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
+      const redirectUri = encodeURIComponent("http://localhost:8080"); // Update if needed
+  
+      const logoutUrl = `https://${domain}/logout?client_id=${clientId}&logout_uri=${redirectUri}`;
+  
+      // Optional: clear local storage (only if you want to do it immediately)
+      localStorage.removeItem('cognito_token');
+      localStorage.removeItem('cognito_access_token');
+      localStorage.removeItem('cognito_refresh_token');
+  
+      // Redirect to hosted UI logout endpoint
+      window.location.href = logoutUrl;
+  
     } catch (error) {
       toast({
         title: 'Error',
@@ -193,6 +198,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
     }
   };
+  
 
   const confirmSignUp = async (email: string, code: string) => {
     try {
@@ -219,7 +225,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
     }
   };
-
+  const setSessionFromToken = async (tokens: {
+    id_token: string;
+    access_token: string;
+    refresh_token?: string;
+  }) => {
+    try {
+      setIsLoading(true);
+  
+      const { id_token, access_token, refresh_token } = tokens;
+  
+      localStorage.setItem('cognito_token', id_token);
+      localStorage.setItem('cognito_access_token', access_token);
+      if (refresh_token) {
+        localStorage.setItem('cognito_refresh_token', refresh_token);
+      }
+  
+      const userData = decodeToken(id_token);
+  
+      if (userData) {
+        setUser(userData);
+        setIsAuthenticated(true);
+      } else {
+        throw new Error('Unable to decode user info from token');
+      }
+    } catch (error) {
+      console.error('Error setting session from token:', error);
+      setIsAuthenticated(false);
+      setUser(null);
+      localStorage.removeItem('cognito_token');
+      localStorage.removeItem('cognito_access_token');
+      localStorage.removeItem('cognito_refresh_token');
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   const forgotPassword = async (email: string) => {
     try {
       setIsLoading(true);
@@ -282,6 +324,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     confirmSignUp,
     forgotPassword,
     resetPassword,
+    setSessionFromToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

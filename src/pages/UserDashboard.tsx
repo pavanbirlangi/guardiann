@@ -85,11 +85,11 @@ const UserDashboard = () => {
   const handleLogout = async () => {
     try {
       await signOut();
-      toast({
-        title: "Logged Out Successfully",
-        description: "You have been logged out of your account",
-      });
-      navigate("/");
+    toast({
+      title: "Logged Out Successfully",
+      description: "You have been logged out of your account",
+    });
+    navigate("/");
     } catch (error) {
       console.error("Logout error:", error);
       toast({

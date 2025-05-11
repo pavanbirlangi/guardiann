@@ -129,9 +129,20 @@ const Auth = () => {
   };
 
   const handleGoogleAuth = () => {
-    // This will be implemented later
-    console.log('Google auth to be implemented');
+    const domain = import.meta.env.VITE_COGNITO_DOMAIN;
+    const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
+    const redirectUri = import.meta.env.VITE_COGNITO_REDIRECT_URI;
+    const responseType = "code"; // or "code" if you're using the Authorization Code Grant
+    const identityProvider = "Google";
+    const scope = "email openid profile";
+  
+    const googleLoginUrl = `https://${domain}/oauth2/authorize?identity_provider=${identityProvider}&redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}&response_type=${responseType}&client_id=${clientId}&scope=${encodeURIComponent(scope)}`;
+  
+    window.location.href = googleLoginUrl;
   };
+  
 
   return (
     <Layout>

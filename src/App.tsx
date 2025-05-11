@@ -16,6 +16,8 @@ import BookingPage from '@/pages/BookingPage';
 import BookingConfirmation from '@/pages/BookingConfirmation';
 import UserDashboard from '@/pages/UserDashboard';
 import NotFound from '@/pages/NotFound';
+import AuthConfirm from '@/pages/AuthConfirm';
+import GoogleCallback from '@/pages/GoogleCallback';
 
 // Create a wrapper component to use hooks
 const AppRoutes = () => {
@@ -30,15 +32,17 @@ const AppRoutes = () => {
   }
 
   return (
-    <Routes>
+        <Routes>
       {/* Public Routes */}
-      <Route path="/" element={<Index />} />
-      <Route path="/categories" element={<Categories />} />
+          <Route path="/" element={<Index />} />
+          <Route path="/categories" element={<Categories />} />
       <Route path="/institutions" element={<InstitutionListing />} />
       <Route path="/institutions/:id" element={<InstitutionDetails />} />
-      <Route path="/about" element={<AboutUs />} />
-      <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/contact" element={<Contact />} />
       <Route path="/auth" element={isAuthenticated ? <Navigate to="/user/dashboard" replace /> : <Auth />} />
+      <Route path="/auth/confirm" element={<AuthConfirm />} />
+      <Route path="/auth/callback" element={<GoogleCallback />} />
 
       {/* Protected Routes */}
       <Route
@@ -67,8 +71,8 @@ const AppRoutes = () => {
       />
 
       {/* Catch all route */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
   );
 };
 
